@@ -1,0 +1,4 @@
+#!/bin/bash
+# Manual CPU Cleanup
+echo "🧹 Running manual CPU cleanup..."
+/Users/bigswizz/cpu-monitor/cpu-cleanup-enhanced.sh

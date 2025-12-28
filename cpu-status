@@ -1,0 +1,3 @@
+#!/bin/bash
+# Quick CPU Status Check
+/Users/bigswizz/cpu-monitor/check-protection-status.sh

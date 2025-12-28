@@ -1,0 +1,75 @@
+====================================
+CPU MONITOR - HOW TO USE
+====================================
+
+EASY LAUNCH OPTIONS (Double-Click from Finder):
+------------------------------------------------
+
+1. CPU-CONTROL-CENTER.command
+   - Main control panel with all options
+   - Double-click to open the control center
+   - Choose options using number keys
+
+2. START-CPU-MONITOR.command
+   - Launches the menu bar app
+   - Shows CPU % in your menu bar
+   - Click the percentage for quick actions
+
+3. RUN-CPU-CLEANUP.command
+   - Manually run CPU cleanup
+   - Kills high-CPU processes
+   - Protects your dev tools
+
+4. CHECK-STATUS.command
+   - Check protection status
+   - See which processes are protected
+   - View current CPU usage
+
+FROM TERMINAL:
+--------------
+cd /Users/bigswizz/cpu-monitor
+
+Quick commands:
+./cpu-status      # Check protection status
+./cpu-clean       # Run cleanup
+./cpu-test        # Test protection
+
+MENU BAR APP FEATURES:
+----------------------
+• 🟢 Green = CPU < 50%
+• 🟡 Yellow = CPU 50-80%
+• 🔴 Red = CPU > 80%
+
+Click the percentage to:
+• Run cleanup manually
+• Check protection status
+• View top processes
+• Enable auto-cleanup (>70% CPU)
+• Quit the app
+
+PROTECTED PROCESSES:
+--------------------
+✅ IDEs: VS Code, Cursor, Xcode, IntelliJ, etc.
+✅ Terminals: Terminal, iTerm, etc.
+✅ Dev Tools: node, python, docker, git
+✅ Shells: zsh, bash, fish
+✅ Active sessions with open files
+
+AUTO-CLEANUP SERVICE:
+---------------------
+Runs every 3 minutes automatically
+To disable: launchctl unload ~/Library/LaunchAgents/com.user.cpumanager.plist
+To enable: launchctl load ~/Library/LaunchAgents/com.user.cpumanager.plist
+
+TROUBLESHOOTING:
+---------------
+If menu bar app doesn't start:
+1. Open Terminal
+2. Run: python3 -m pip install rumps psutil
+3. Try launching again
+
+To stop menu bar app:
+- Click percentage → Quit
+- Or run: pkill -f cpu-menubar
+
+====================================

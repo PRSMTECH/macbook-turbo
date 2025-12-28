@@ -1,0 +1,9 @@
+# CPU Monitor & System Optimizer Dependencies
+# macOS performance monitoring and optimization toolkit
+
+# Core dependencies
+rumps>=0.4.0          # macOS menu bar apps
+psutil>=5.9.0         # System monitoring (CPU, memory, disk, processes)
+
+# Optional - for enhanced features
+# py-cpuinfo>=9.0.0   # Detailed CPU information (optional)
