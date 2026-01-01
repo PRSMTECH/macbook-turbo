@@ -1,28 +1,41 @@
 # Active Context
 
-**Last Updated**: 2025-12-27
+**Last Updated**: 2026-01-01
 
 ## Current Focus
-- MacBook Turbo successfully deployed to GitHub
-- Repository live at PRSMTECH/macbook-turbo
+- **v1.0.0 RELEASED** - Ready for public launch!
+- Repository: https://github.com/PRSMTECH/macbook-turbo
+- One-line installer working
+- **NEW: README with PRSMTECH styling & beginner walkthrough**
 
 ## Active Features
 - CPU/Memory/Thermal menu bar monitor (v2.0)
 - Intelligent process management with developer protection
 - Modular architecture with 4 specialized monitors
 - Auto-cleanup modes (Off/Conservative/Balanced/Aggressive)
+- **NEW: One-line installer**
+- **NEW: GitHub Actions CI (Python 3.9-3.12)**
 
-## Completed This Session
-- Created fresh GitHub repo: PRSMTECH/macbook-turbo
-- Added professional README with badges and documentation
-- Added MIT LICENSE
-- Added .gitignore
-- Pushed 32 files (5,286 lines) to main branch
+## Completed This Session (2026-01-01)
+- Fixed all hardcoded `/Users/bigswizz/` paths (BLOCKER RESOLVED)
+- Created `install.sh` one-line installer with:
+  - Prerequisite checks
+  - Virtual environment setup
+  - Optional auto-start configuration
+- Created GitHub Actions CI workflow:
+  - Multi-Python version testing
+  - Linting and security checks
+  - Automated release creation
+- Updated `uninstall.sh` with proper cleanup
+- Enhanced README with Quick Start section
+- Added CHANGELOG.md
+- Created and pushed v1.0.0 tag
 
 ## Known Blockers
-- None currently
+- None - Ready for launch!
 
 ## Next Session
-- Consider adding GitHub Actions for testing
-- Potential: Add version tagging (v1.0.0)
-- Optional: Create Homebrew formula for easy installation
+- Monitor GitHub Actions CI results
+- Optional: Create Homebrew formula
+- Optional: Add configuration file support
+- Gather user feedback after launch
