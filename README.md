@@ -5,15 +5,36 @@
 ![macOS](https://img.shields.io/badge/macOS-Sonoma%20%7C%20Ventura%20%7C%20Monterey-blue?style=for-the-badge&logo=apple&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+![CI](https://img.shields.io/github/actions/workflow/status/PRSMTECH/macbook-turbo/ci.yml?style=for-the-badge&label=CI)
 
 **Intelligent macOS System Optimizer & CPU Monitor**
 
 *Keep your Mac running at peak performance with real-time monitoring and smart cleanup*
 
-[Features](#-features) | [Installation](#-installation) | [Usage](#-usage) | [Configuration](#%EF%B8%8F-configuration) | [Contributing](#-contributing)
+[Quick Start](#-quick-start) | [Features](#-features) | [Installation](#-installation) | [Usage](#-usage) | [Configuration](#%EF%B8%8F-configuration)
 
 </div>
+
+---
+
+## Quick Start
+
+**One-line install (recommended):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/PRSMTECH/macbook-turbo/main/install.sh | bash
+```
+
+**Or manual install:**
+
+```bash
+git clone https://github.com/PRSMTECH/macbook-turbo.git ~/macbook-turbo
+cd ~/macbook-turbo
+pip3 install -r requirements.txt
+python3 cpu-menubar-enhanced.py
+```
+
+After installation, look for the **CPU indicator** (🟢/🟡/🔴 with percentage) in your menu bar!
 
 ---
 
@@ -70,12 +91,43 @@ Real-time system status with color-coded indicators:
 
 ## Installation
 
-### Quick Start
+### Prerequisites
+
+Before installing, make sure you have:
+
+- macOS 12.x (Monterey) or later
+- Python 3.9 or higher (`python3 --version` to check)
+- ~50 MB disk space
+
+**Don't have Python?** Install via [Homebrew](https://brew.sh/):
+```bash
+brew install python@3.11
+```
+
+### One-Line Install (Recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/PRSMTECH/macbook-turbo/main/install.sh | bash
+```
+
+The installer will:
+- Check prerequisites
+- Clone the repository to `~/macbook-turbo`
+- Create a virtual environment
+- Install dependencies
+- Set up launcher scripts
+- Optionally configure auto-start
+
+### Manual Install
 
 ```bash
 # Clone the repository
-git clone https://github.com/PRSMTECH/macbook-turbo.git
-cd macbook-turbo
+git clone https://github.com/PRSMTECH/macbook-turbo.git ~/macbook-turbo
+cd ~/macbook-turbo
+
+# Create virtual environment (recommended)
+python3 -m venv venv
+source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
@@ -84,20 +136,16 @@ pip install -r requirements.txt
 python cpu-menubar-enhanced.py
 ```
 
-### Dependencies
+### Uninstall
 
 ```bash
-pip install rumps psutil
-```
+# Run the uninstall script
+~/macbook-turbo/uninstall.sh
 
-### Optional: Install as LaunchAgent (Auto-Start)
-
-```bash
-# Copy the plist to LaunchAgents
-cp config/com.user.cpumanager.plist ~/Library/LaunchAgents/
-
-# Load the service
-launchctl load ~/Library/LaunchAgents/com.user.cpumanager.plist
+# Or manually:
+pkill -f "cpu-menubar"
+launchctl unload ~/Library/LaunchAgents/com.prsmtech.macbookturbo.plist 2>/dev/null
+rm -rf ~/macbook-turbo
 ```
 
 ---

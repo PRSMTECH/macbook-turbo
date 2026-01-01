@@ -27,7 +27,7 @@ EASY LAUNCH OPTIONS (Double-Click from Finder):
 
 FROM TERMINAL:
 --------------
-cd /Users/bigswizz/cpu-monitor
+cd ~/macbook-turbo   # Or wherever you installed it
 
 Quick commands:
 ./cpu-status      # Check protection status

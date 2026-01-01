@@ -10,6 +10,9 @@ import os
 import sys
 import time
 
+# Get script directory for relative paths
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Try to install dependencies if needed
 try:
     import rumps
@@ -84,8 +87,9 @@ class CPUMonitorApp(rumps.App):
         rumps.notification("CPU Cleanup", "Running...", "Cleaning up high CPU processes")
 
         try:
+            cleanup_script = os.path.join(SCRIPT_DIR, "cpu-cleanup-enhanced.sh")
             result = subprocess.run(
-                ["/bin/bash", "/Users/bigswizz/cpu-monitor/cpu-cleanup-enhanced.sh"],
+                ["/bin/bash", cleanup_script],
                 capture_output=True,
                 text=True,
                 timeout=10
@@ -109,8 +113,9 @@ class CPUMonitorApp(rumps.App):
     def check_status(self, _):
         """Check protection status"""
         try:
+            status_script = os.path.join(SCRIPT_DIR, "check-protection-status.sh")
             result = subprocess.run(
-                ["/bin/bash", "/Users/bigswizz/cpu-monitor/check-protection-status.sh"],
+                ["/bin/bash", status_script],
                 capture_output=True,
                 text=True,
                 timeout=5
