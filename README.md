@@ -252,7 +252,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # 5. Run the app!
-python cpu-menubar-enhanced.py
+python src/cpu-menubar-enhanced.py
 ```
 
 ### Make It Start Automatically
@@ -326,10 +326,10 @@ pkill -f "cpu-menubar"
 
 ```bash
 cd ~/macbook-turbo
-python cpu-menubar-enhanced.py &
+python src/cpu-menubar-enhanced.py &
 ```
 
-Or double-click `START-CPU-MONITOR.command` in the folder.
+Or double-click `launchers/START-CPU-MONITOR.command` in the folder.
 
 </details>
 
@@ -348,12 +348,12 @@ Try these steps:
    pkill -f "cpu-menubar"
    cd ~/macbook-turbo
    source venv/bin/activate
-   python cpu-menubar-enhanced.py &
+   python src/cpu-menubar-enhanced.py &
    ```
 
 3. **Check for errors:**
    ```bash
-   python cpu-menubar-enhanced.py
+   python src/cpu-menubar-enhanced.py
    ```
 
 </details>
@@ -361,7 +361,7 @@ Try these steps:
 <details>
 <summary><strong>Can I add my own protected apps?</strong></summary>
 
-Yes! Edit `cpu-cleanup-enhanced.sh` and add your apps:
+Yes! Edit `scripts/cpu-cleanup-enhanced.sh` and add your apps:
 
 ```bash
 PROTECTED_PROCESSES="YourApp|AnotherApp"
@@ -377,16 +377,16 @@ For power users who want more control:
 
 ```bash
 # Full system status dashboard
-python system-optimizer.py status
+python src/system-optimizer.py status
 
 # Run disk cleanup
-python system-optimizer.py cleanup
+python src/system-optimizer.py cleanup
 
 # Continuous monitoring mode
-python system-optimizer.py monitor
+python src/system-optimizer.py monitor
 
 # Deep system analysis
-python system-optimizer.py analyze
+python src/system-optimizer.py analyze
 ```
 
 Individual modules:
@@ -403,17 +403,27 @@ python modules/process_scorer.py    # Just score running processes
 
 ```
 macbook-turbo/
-├── cpu-menubar-enhanced.py    # 🖥️  The main menu bar app
-├── system-optimizer.py        # 🛠️  Command line tool
-├── cpu-cleanup-enhanced.sh    # 🧹  The cleanup script
-├── install.sh                 # 📦  The installer
-├── uninstall.sh              # 🗑️  The uninstaller
-├── modules/
-│   ├── thermal_monitor.py    # 🌡️  Temperature monitoring
-│   ├── memory_monitor.py     # 💾  Memory tracking
-│   ├── disk_cleaner.py       # 💿  Disk cleanup
-│   └── process_scorer.py     # 📊  Process scoring
-└── *.command                  # 🖱️  Double-click launchers
+├── src/                       # 🐍  Python source code
+│   ├── cpu-menubar.py         #     Basic menu bar app
+│   ├── cpu-menubar-enhanced.py#     Enhanced menu bar app
+│   └── system-optimizer.py    #     Command line tool
+├── scripts/                   # 🔧  Shell scripts
+│   ├── cpu-cleanup-enhanced.sh#     Smart cleanup script
+│   └── check-protection-status.sh
+├── launchers/                 # 🖱️  Double-click launchers
+│   ├── START-CPU-MONITOR.command
+│   ├── LAUNCH-ENHANCED-MONITOR.command
+│   └── CPU-CONTROL-CENTER.command
+├── modules/                   # 📦  Python modules
+│   ├── thermal_monitor.py     #     Temperature monitoring
+│   ├── memory_monitor.py      #     Memory tracking
+│   ├── disk_cleaner.py        #     Disk cleanup
+│   └── process_scorer.py      #     Process scoring
+├── bin/                       # ⚡  Quick CLI commands
+├── docs/                      # 📖  Documentation
+├── config/                    # ⚙️  Configuration files
+├── install.sh                 # 📦  One-line installer
+└── uninstall.sh               # 🗑️  Uninstaller
 ```
 
 ---

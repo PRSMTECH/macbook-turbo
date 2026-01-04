@@ -139,10 +139,9 @@ echo -e "   ${GREEN}✓${NC} Dependencies installed"
 # Make scripts executable
 echo -e "   ${BLUE}Making scripts executable...${NC}"
 chmod +x "$INSTALL_DIR"/*.sh 2>/dev/null || true
-chmod +x "$INSTALL_DIR"/*.command 2>/dev/null || true
-chmod +x "$INSTALL_DIR"/cpu-status 2>/dev/null || true
-chmod +x "$INSTALL_DIR"/cpu-clean 2>/dev/null || true
-chmod +x "$INSTALL_DIR"/cpu-test 2>/dev/null || true
+chmod +x "$INSTALL_DIR"/scripts/*.sh 2>/dev/null || true
+chmod +x "$INSTALL_DIR"/launchers/*.command 2>/dev/null || true
+chmod +x "$INSTALL_DIR"/bin/* 2>/dev/null || true
 echo -e "   ${GREEN}✓${NC} Scripts are executable"
 
 echo ""
@@ -160,7 +159,7 @@ cat > "$LAUNCHER_SCRIPT" << 'LAUNCHER'
 # MacBook Turbo Launcher
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/venv/bin/activate"
-python "$SCRIPT_DIR/cpu-menubar-enhanced.py"
+python "$SCRIPT_DIR/src/cpu-menubar-enhanced.py"
 LAUNCHER
 chmod +x "$LAUNCHER_SCRIPT"
 
@@ -171,7 +170,7 @@ cat > "$CLI_SCRIPT" << 'CLILAUNCHER'
 # MacBook Turbo CLI
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/venv/bin/activate"
-python "$SCRIPT_DIR/system-optimizer.py" "$@"
+python "$SCRIPT_DIR/src/system-optimizer.py" "$@"
 CLILAUNCHER
 chmod +x "$CLI_SCRIPT"
 
@@ -229,7 +228,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     <key>ProgramArguments</key>
     <array>
         <string>$INSTALL_DIR/venv/bin/python</string>
-        <string>$INSTALL_DIR/cpu-menubar-enhanced.py</string>
+        <string>$INSTALL_DIR/src/cpu-menubar-enhanced.py</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -271,7 +270,7 @@ echo -e "   ${GREEN}Launch Menu Bar App:${NC}"
 echo -e "   ${BLUE}$INSTALL_DIR/launch-macbook-turbo.sh${NC}"
 echo ""
 echo -e "   ${GREEN}Or double-click in Finder:${NC}"
-echo -e "   ${BLUE}$INSTALL_DIR/START-CPU-MONITOR.command${NC}"
+echo -e "   ${BLUE}$INSTALL_DIR/launchers/START-CPU-MONITOR.command${NC}"
 echo ""
 echo -e "   ${GREEN}CLI Usage:${NC}"
 echo -e "   ${BLUE}$INSTALL_DIR/macbook-turbo-cli status${NC}    # Show system status"

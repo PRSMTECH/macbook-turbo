@@ -1,8 +1,12 @@
 #!/bin/bash
 #
 # DOUBLE-CLICK THIS FILE TO RUN CPU CLEANUP
-# Or run from Terminal: /Users/bigswizz/cpu-monitor/RUN-CPU-CLEANUP.command
 #
+
+# Get script directory (launchers/ folder)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get project root (parent of launchers/)
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 clear
 echo "======================================"
@@ -13,13 +17,13 @@ echo "This will clean up high-CPU processes"
 echo "while protecting your development tools"
 echo ""
 echo "Protected:"
-echo "  • IDEs (VS Code, Cursor, Xcode, etc.)"
-echo "  • Terminal sessions"
-echo "  • Development tools (node, python, docker)"
+echo "  IDEs (VS Code, Cursor, Xcode, etc.)"
+echo "  Terminal sessions"
+echo "  Development tools (node, python, docker)"
 echo ""
 
 # Run the cleanup
-/Users/bigswizz/cpu-monitor/cpu-cleanup-enhanced.sh
+"$PROJECT_DIR/scripts/cpu-cleanup-enhanced.sh"
 
 echo ""
 echo "======================================"

@@ -34,6 +34,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0] - 2026-01-04
+
+### Changed
+- **Project Reorganization** - Clean directory structure for better maintainability
+  - `src/` - Python source files (cpu-menubar.py, cpu-menubar-enhanced.py, system-optimizer.py)
+  - `scripts/` - Shell scripts for utilities and cleanup
+  - `launchers/` - Double-click .command files
+  - `bin/` - Quick CLI commands (cpu-clean, cpu-status, cpu-test)
+  - `docs/` - Documentation files
+- All hardcoded paths replaced with dynamic path resolution
+- Updated install.sh to work with new directory structure
+- Updated all launcher .command files with relative paths
+- .gitignore now excludes .memory-bank/ (local development context)
+
+### Fixed
+- Launcher scripts now work from any installation location
+- Removed remaining hardcoded `/Users/bigswizz/` paths
+
+---
+
 ## [Unreleased]
 
 ### Planned

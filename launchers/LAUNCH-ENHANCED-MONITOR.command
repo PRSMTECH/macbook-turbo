@@ -4,8 +4,10 @@
 # Double-click to launch the Enhanced CPU Monitor Menu Bar App v2.0
 # Features: Thermal monitoring, Memory pressure, Disk cleanup, Auto-cleanup modes
 
-# Get script directory
+# Get script directory (launchers/ folder)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Get project root (parent of launchers/)
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Colors
 GREEN='\033[0;32m'
@@ -86,8 +88,8 @@ echo "  - Multi-factor process scoring for safe cleanup"
 echo "  - Auto-cleanup modes (Off/Conservative/Balanced/Aggressive)"
 echo ""
 
-cd "$SCRIPT_DIR"
-nohup python3 "$SCRIPT_DIR/cpu-menubar-enhanced.py" > ~/Library/Logs/cpu-menubar-enhanced.log 2>&1 &
+cd "$PROJECT_DIR"
+nohup python3 "$PROJECT_DIR/src/cpu-menubar-enhanced.py" > ~/Library/Logs/cpu-menubar-enhanced.log 2>&1 &
 
 # Verify launch
 sleep 2

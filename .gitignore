@@ -49,3 +49,6 @@ logs/
 
 # Cache
 .cache/
+
+# Memory Bank (local context only)
+.memory-bank/
