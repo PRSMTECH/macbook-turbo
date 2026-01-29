@@ -84,19 +84,81 @@ NEVER_KILL=(
 
     # Claude related
     "claude"
+
+    # ========================================
+    # USER APPLICATIONS (main processes only)
+    # These are apps the user wants to keep running
+    # Only their HELPER processes can be killed
+    # ========================================
+
+    # Browsers - MAIN processes (helpers can be killed)
+    "Google Chrome"
+    "Brave Browser"
+    "Brave"
+    "Safari"
+    "Firefox"
+    "Arc"
+    "Microsoft Edge"
+    "Opera"
+
+    # Media players - MAIN processes
+    "Spotify"
+    "Music"
+    "iTunes"
+    "VLC"
+    "IINA"
+    "QuickTime Player"
+
+    # Communication apps - MAIN processes
+    "Slack"
+    "Discord"
+    "Zoom.us"
+    "Microsoft Teams"
+    "Messages"
+    "FaceTime"
+    "WhatsApp"
+    "Telegram"
+    "Signal"
+
+    # Remote desktop applications
+    "Splashtop Streamer"
+    "Splashtop Business"
+    "Splashtop Personal"
+    "SRServer"
+    "SRAgent"
+    "SRUtility"
 )
 
 # Processes that CAN be killed when using excessive CPU
+# NOTE: These are HELPER/WORKER processes only, NOT main applications
 CAN_KILL_IF_HIGH_CPU=(
+    # System background processes
     "mdworker"
     "mds_stores"
     "com.apple.WebKit"
-    "Safari Web Content"
-    "Google Chrome Helper"
-    "firefox"
-    "plugin_host"
     "quicklookd"
     "corespotlightd"
+
+    # Browser HELPER processes (NOT main browser apps)
+    "Safari Web Content"
+    "Safari Networking"
+    "Google Chrome Helper"
+    "Brave Browser Helper"
+    "Firefox Content"
+    "Arc Helper"
+    "Microsoft Edge Helper"
+
+    # Communication HELPER processes
+    "Slack Helper"
+    "Discord Helper"
+    "Teams Helper"
+    "Zoom Helper"
+
+    # Media HELPER processes
+    "Spotify Helper"
+
+    # Other helpers
+    "plugin_host"
 )
 
 # Export for use in other scripts

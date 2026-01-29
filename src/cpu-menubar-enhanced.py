@@ -19,6 +19,7 @@ import os
 import sys
 import time
 import threading
+from threading import RLock, Lock
 from typing import Optional, List, Dict
 from dataclasses import dataclass
 from enum import Enum
@@ -33,11 +34,14 @@ except ImportError:
     import rumps
     import psutil
 
-# Add modules directory to path
+# Add modules and config directories to path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODULES_DIR = os.path.join(SCRIPT_DIR, 'modules')
+MODULES_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'modules')
+CONFIG_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'config')
 if MODULES_DIR not in sys.path:
     sys.path.insert(0, MODULES_DIR)
+if CONFIG_DIR not in sys.path:
+    sys.path.insert(0, CONFIG_DIR)
 
 # Import custom modules
 try:
@@ -52,6 +56,14 @@ except ImportError as e:
     ThermalMonitor = None
     MemoryMonitor = None
     DiskCleaner = None
+
+# Import settings module
+try:
+    from settings import get_settings, Settings
+except ImportError:
+    print("Warning: Settings module not available, using defaults")
+    get_settings = None
+    Settings = None
 
 
 class AutoCleanMode(Enum):
@@ -105,18 +117,26 @@ class EnhancedCPUMonitorApp(rumps.App):
         super(EnhancedCPUMonitorApp, self).__init__("CPU", quit_button=None)
         self.icon = None
 
+        # Thread safety locks
+        self._state_lock = RLock()      # For auto_clean_mode, last_clean_time
+        self._status_lock = Lock()      # For last_status updates
+        self._cleanup_lock = Lock()     # Prevent concurrent cleanups
+
+        # Initialize settings (load from disk)
+        self.settings = get_settings() if get_settings else None
+
         # Initialize monitors
         self.process_scorer = ProcessScorer() if ProcessScorer else None
         self.thermal_monitor = ThermalMonitor() if ThermalMonitor else None
         self.memory_monitor = MemoryMonitor() if MemoryMonitor else None
         self.disk_cleaner = DiskCleaner() if DiskCleaner else None
 
-        # State
-        self.auto_clean_mode = AutoCleanMode.OFF
-        self.last_clean_time = 0
-        self.cooldown_seconds = 180  # 3 minute cooldown
-        self.show_detailed = False
-        self.last_status: Optional[SystemStatus] = None
+        # State (protected by _state_lock) - load from settings if available
+        self._auto_clean_mode = self._load_auto_clean_mode()
+        self._last_clean_time = 0
+        self.cooldown_seconds = self.settings.cooldown_seconds if self.settings else 180
+        self.show_detailed = self.settings.show_detailed if self.settings else False
+        self._last_status: Optional[SystemStatus] = None
 
         # Build menu
         self._build_menu()
@@ -128,6 +148,60 @@ class EnhancedCPUMonitorApp(rumps.App):
         # Start thermal monitoring in background (less frequent)
         self.thermal_timer = rumps.Timer(self.update_thermal, 10)
         self.thermal_timer.start()
+
+    # Thread-safe property accessors
+    @property
+    def auto_clean_mode(self) -> AutoCleanMode:
+        with self._state_lock:
+            return self._auto_clean_mode
+
+    @auto_clean_mode.setter
+    def auto_clean_mode(self, value: AutoCleanMode):
+        with self._state_lock:
+            self._auto_clean_mode = value
+
+    @property
+    def last_clean_time(self) -> float:
+        with self._state_lock:
+            return self._last_clean_time
+
+    @last_clean_time.setter
+    def last_clean_time(self, value: float):
+        with self._state_lock:
+            self._last_clean_time = value
+
+    @property
+    def last_status(self) -> Optional[SystemStatus]:
+        with self._status_lock:
+            return self._last_status
+
+    @last_status.setter
+    def last_status(self, value: Optional[SystemStatus]):
+        with self._status_lock:
+            self._last_status = value
+
+    def _load_auto_clean_mode(self) -> AutoCleanMode:
+        """Load auto-clean mode from settings."""
+        if not self.settings:
+            return AutoCleanMode.OFF
+
+        mode_str = self.settings.auto_clean_mode
+        mode_map = {
+            "off": AutoCleanMode.OFF,
+            "conservative": AutoCleanMode.CONSERVATIVE,
+            "balanced": AutoCleanMode.BALANCED,
+            "aggressive": AutoCleanMode.AGGRESSIVE,
+        }
+        return mode_map.get(mode_str, AutoCleanMode.OFF)
+
+    def _save_settings(self):
+        """Save current settings to disk."""
+        if not self.settings:
+            return
+
+        self.settings.auto_clean_mode = self._auto_clean_mode.value
+        self.settings.show_detailed = self.show_detailed
+        self.settings.cooldown_seconds = self.cooldown_seconds
 
     def _build_menu(self):
         """Build the menu structure"""
@@ -163,8 +237,11 @@ class EnhancedCPUMonitorApp(rumps.App):
         automode_menu.add(self.mode_conservative)
         automode_menu.add(self.mode_balanced)
         automode_menu.add(self.mode_aggressive)
-        # Mark current mode
-        self.mode_off.state = 1  # Default is OFF
+        # Mark current mode (loaded from settings)
+        self.mode_off.state = self._auto_clean_mode == AutoCleanMode.OFF
+        self.mode_conservative.state = self._auto_clean_mode == AutoCleanMode.CONSERVATIVE
+        self.mode_balanced.state = self._auto_clean_mode == AutoCleanMode.BALANCED
+        self.mode_aggressive.state = self._auto_clean_mode == AutoCleanMode.AGGRESSIVE
 
         # Build main menu
         self.menu = [
@@ -287,64 +364,76 @@ class EnhancedCPUMonitorApp(rumps.App):
             print(f"Thermal update error: {e}")
 
     def _check_auto_cleanup(self, cpu: float, memory: float, pressure: str):
-        """Check if auto-cleanup should trigger"""
-        if self.auto_clean_mode == AutoCleanMode.OFF:
+        """Check if auto-cleanup should trigger (thread-safe)"""
+        # Thread-safe read of mode
+        mode = self.auto_clean_mode
+        if mode == AutoCleanMode.OFF:
             return
 
-        # Check cooldown
+        # Thread-safe check of cooldown
         if time.time() - self.last_clean_time < self.cooldown_seconds:
             return
 
-        thresholds = self.THRESHOLDS[self.auto_clean_mode]
-        should_clean = False
-        reason = ""
+        thresholds = self.THRESHOLDS[mode]
+        reasons = []
 
         # Check CPU
         if cpu > thresholds['cpu']:
-            should_clean = True
-            reason = f"CPU at {cpu:.0f}%"
+            reasons.append(f"CPU at {cpu:.0f}%")
 
         # Check memory
         if memory > thresholds['memory']:
-            should_clean = True
-            reason = f"Memory at {memory:.0f}%"
+            reasons.append(f"Memory at {memory:.0f}%")
 
         # Check memory pressure
         if pressure == "critical":
-            should_clean = True
-            reason = "Critical memory pressure"
-        elif pressure == "warn" and self.auto_clean_mode == AutoCleanMode.AGGRESSIVE:
-            should_clean = True
-            reason = "Memory pressure warning"
+            reasons.append("Critical memory pressure")
+        elif pressure == "warn" and mode == AutoCleanMode.AGGRESSIVE:
+            reasons.append("Memory pressure warning")
 
-        if should_clean:
-            self._run_auto_cleanup(reason)
+        if reasons:
+            self._run_auto_cleanup(" + ".join(reasons))
 
     def _run_auto_cleanup(self, reason: str):
-        """Run automatic cleanup"""
-        self.last_clean_time = time.time()
+        """Run automatic cleanup with thread safety"""
+        # Try to acquire cleanup lock - skip if another cleanup is running
+        if not self._cleanup_lock.acquire(blocking=False):
+            return
 
-        rumps.notification(
-            "Auto-Cleanup",
-            f"Triggered: {reason}",
-            f"Mode: {self.auto_clean_mode.value}"
-        )
+        try:
+            self.last_clean_time = time.time()
 
-        # Run in background thread
-        thread = threading.Thread(target=self._background_cleanup, args=(reason,))
-        thread.daemon = True
-        thread.start()
+            rumps.notification(
+                "Auto-Cleanup",
+                f"Triggered: {reason}",
+                f"Mode: {self.auto_clean_mode.value}"
+            )
+
+            # Run in background thread
+            thread = threading.Thread(
+                target=self._background_cleanup,
+                args=(reason,),
+                daemon=True
+            )
+            thread.start()
+        except Exception as e:
+            # Release lock if thread didn't start
+            self._cleanup_lock.release()
+            print(f"Auto-cleanup start error: {e}")
 
     def _background_cleanup(self, reason: str):
-        """Background cleanup worker"""
+        """Background cleanup worker with proper lock release"""
         try:
             killed = 0
 
             if self.process_scorer:
+                # Thread-safe read of mode
+                mode = self.auto_clean_mode
+
                 # Get killable processes
                 killable = self.process_scorer.get_killable_processes(
-                    min_score=30 if self.auto_clean_mode == AutoCleanMode.AGGRESSIVE else 50,
-                    min_cpu=20 if self.auto_clean_mode == AutoCleanMode.AGGRESSIVE else 30
+                    min_score=30 if mode == AutoCleanMode.AGGRESSIVE else 50,
+                    min_cpu=20 if mode == AutoCleanMode.AGGRESSIVE else 30
                 )
 
                 # Kill top offenders
@@ -362,6 +451,9 @@ class EnhancedCPUMonitorApp(rumps.App):
 
         except Exception as e:
             print(f"Background cleanup error: {e}")
+        finally:
+            # Always release the cleanup lock
+            self._cleanup_lock.release()
 
     def run_process_cleanup(self, _):
         """Manual process cleanup"""
@@ -705,8 +797,11 @@ class EnhancedCPUMonitorApp(rumps.App):
             rumps.alert("Error", str(e))
 
     def set_auto_mode(self, mode: AutoCleanMode):
-        """Set auto-cleanup mode"""
+        """Set auto-cleanup mode and save to settings"""
         self.auto_clean_mode = mode
+
+        # Save to persistent settings
+        self._save_settings()
 
         # Update menu checkmarks using stored references
         self.mode_off.state = False
@@ -731,8 +826,12 @@ class EnhancedCPUMonitorApp(rumps.App):
         )
 
     def toggle_detailed(self, _):
-        """Toggle detailed view in menu bar"""
+        """Toggle detailed view in menu bar and save to settings"""
         self.show_detailed = not self.show_detailed
+
+        # Save to persistent settings
+        self._save_settings()
+
         rumps.notification(
             "Display Mode",
             "Detailed view" if self.show_detailed else "Simple view",

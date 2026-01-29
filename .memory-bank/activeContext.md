@@ -1,51 +1,61 @@
 # Active Context
 
-**Last Updated**: 2026-01-01
+**Last Updated**: 2026-01-29
 
 ## Current Focus
-- **v1.0.0 SHIPPED** - Public launch ready!
-- Repository: https://github.com/PRSMTECH/macbook-turbo
-- One-line installer working: `curl -fsSL https://raw.githubusercontent.com/PRSMTECH/macbook-turbo/main/install.sh | bash`
-- README with PRSMTECH styling & beginner-friendly walkthrough complete
+- **v2.1.0 Protection System Overhaul** - Complete rebuild of process protection
+- CPU monitor running with enhanced thread safety
+- Settings persistence implemented
+- Apple Silicon monitoring added
 
 ## Active Features
 - CPU/Memory/Thermal menu bar monitor (v2.0)
+- **NEW: USER_APPS protection category** - Main apps protected, only helpers killed
+- **NEW: Thread-safe state management** - RLock/Lock for concurrent access
+- **NEW: Settings persistence** - `~/Library/Preferences/com.prsmtech.macbookturbo.json`
+- **NEW: Apple Silicon monitor** - M1/M2/M3/M4 chip detection & thermal pressure
+- **NEW: Splashtop protection** - Remote desktop apps never killed
 - Intelligent process management with developer protection
-- Modular architecture with 4 specialized monitors
+- Modular architecture with 5 specialized monitors
 - Auto-cleanup modes (Off/Conservative/Balanced/Aggressive)
-- One-line installer with prerequisite checks
-- GitHub Actions CI (Python 3.9-3.12)
 
-## Completed This Session (2026-01-01)
+## Completed This Session (2026-01-29)
 
-### Phase 1: v1.0.0 Release (Earlier)
-- Fixed all hardcoded `/Users/bigswizz/` paths (BLOCKER RESOLVED)
-- Created `install.sh` one-line installer
-- Created GitHub Actions CI workflow
-- Updated `uninstall.sh` with proper cleanup
-- Added CHANGELOG.md
-- Created and pushed v1.0.0 tag
+### Phase 1: Protection System Overhaul
+- Added `USER_APPS` ProcessCategory for main application protection
+- Updated regex patterns with negative lookahead to exclude helper processes
+- Protected: Google Chrome, Brave, Safari, Firefox, Spotify, Slack, Discord, Splashtop
+- Killable helpers: Chrome Helper, Brave Helper, Safari Web Content, Spotify Helper, etc.
 
-### Phase 2: Ship with PRSMTECH Styling (Latest)
-- Applied PRSMTECH visual styling to README:
-  - Animated typing SVG header
-  - Capsule-render gradient separators
-  - Cyan theme color (#00D4FF)
-  - Version badge v1.0.0
-- Added beginner-friendly "Super Easy Install" walkthrough:
-  - Step-by-step Terminal instructions
-  - "How to open Terminal" for new users
-  - "What the Colors Mean" reference table
-- Converted features to expandable `<details>` sections
-- Added comprehensive FAQ with troubleshooting
-- Committed and pushed (commit: 150bb48)
+### Phase 2: Thread Safety
+- Added `RLock` for state protection (`auto_clean_mode`, `last_clean_time`)
+- Added `Lock` for status updates and cleanup operations
+- Fixed background cleanup with proper `try/finally` lock release
+- Created thread-safe property accessors
+
+### Phase 3: Settings Persistence
+- Created `config/settings.py` - Singleton pattern settings manager
+- Saves to `~/Library/Preferences/com.prsmtech.macbookturbo.json`
+- Persists: auto_clean_mode, show_detailed, cooldown_seconds
+- Loads on startup, saves on mode change
+
+### Phase 4: Apple Silicon Support
+- Created `modules/apple_silicon_monitor.py`
+- Detects M1/M2/M3/M4 chip types (including Pro/Max/Ultra variants)
+- Monitors thermal pressure via `pmset -g therm`
+- Tracks E-core vs P-core configuration
+
+### Phase 5: Test Suite Update
+- Comprehensive test script `scripts/test-protection.sh`
+- Tests shell-level (NEVER_KILL array) and Python-level protection
+- All 26 shell tests + 24 Python tests passing
 
 ## Known Blockers
-- None - Fully shipped and ready!
+- None - All features working!
 
 ## Next Session Priorities
-1. Monitor GitHub Actions CI results
-2. Check GitHub repository traffic/stars
-3. Optional: Create Homebrew tap/formula
-4. Optional: Add configuration file support
-5. Gather user feedback after launch
+1. Test menu bar app thoroughly with various workloads
+2. Consider integrating Apple Silicon monitor into menu bar UI
+3. Add thermal pressure display in menu bar
+4. Optional: Homebrew formula for easier distribution
+5. Update README with new v2.1.0 features

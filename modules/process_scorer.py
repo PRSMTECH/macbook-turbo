@@ -22,7 +22,8 @@ class ProcessCategory(Enum):
     SYSTEM_CRITICAL = "system_critical"
     DEVELOPMENT = "development"
     TERMINAL = "terminal"
-    BROWSER = "browser"
+    USER_APPS = "user_apps"  # Protected user applications (browsers, media, communication)
+    BROWSER = "browser"  # Browser HELPER processes only (killable)
     COMMUNICATION = "communication"
     CLOUD_SYNC = "cloud_sync"
     MEDIA = "media"
@@ -78,8 +79,8 @@ class ProcessScorer:
             r"UserEventAgent", r"syslogd", r"configd", r"opendirectoryd",
         ],
         ProcessCategory.DEVELOPMENT: [
-            # IDEs
-            r"Code$", r"Code Helper", r"Code - Insiders", r"code-server",
+            # IDEs - Use \s to match "name " (name followed by space/end)
+            r"^Code\s", r"Code Helper", r"Code - Insiders", r"code-server",
             r"Cursor", r"cursor",
             r"IntelliJ", r"WebStorm", r"PyCharm", r"RubyMine", r"GoLand",
             r"DataGrip", r"Rider", r"CLion", r"PhpStorm", r"AppCode",
@@ -87,13 +88,13 @@ class ProcessScorer:
             r"Nova", r"BBEdit", r"Atom", r"Brackets",
             r"vim", r"nvim", r"emacs", r"nano", r"micro",
             # Dev tools
-            r"node$", r"npm", r"yarn", r"pnpm", r"bun",
-            r"python[23]?$", r"pip", r"ruby", r"gem", r"bundle",
-            r"java$", r"javac", r"gradle", r"maven", r"mvn",
-            r"go$", r"cargo", r"rustc", r"rustup",
-            r"git$", r"git-", r"gh$",
+            r"^node\s", r"npm", r"yarn", r"pnpm", r"bun",
+            r"^python[23]?\s", r"pip", r"ruby", r"gem", r"bundle",
+            r"^java\s", r"javac", r"gradle", r"maven", r"mvn",
+            r"^go\s", r"cargo", r"rustc", r"rustup",
+            r"^git\s", r"git-", r"^gh\s",
             r"docker", r"kubectl", r"helm", r"terraform",
-            r"aws$", r"gcloud", r"az$",
+            r"^aws\s", r"gcloud", r"^az\s",
             r"postgres", r"mysql", r"redis", r"mongo",
             r"nginx", r"apache",
             r"electron",
@@ -102,35 +103,76 @@ class ProcessScorer:
             r"typescript-language", r"pylsp", r"gopls", r"rust-analyzer",
         ],
         ProcessCategory.TERMINAL: [
-            r"Terminal$", r"iTerm", r"Hyper", r"Alacritty", r"kitty",
+            r"^Terminal\s", r"iTerm", r"Hyper", r"Alacritty", r"kitty",
             r"WezTerm", r"Warp", r"Tabby", r"Terminus",
-            r"zsh$", r"bash$", r"sh$", r"fish$", r"tcsh$", r"csh$",
-            r"ssh$", r"sshd", r"tmux", r"screen", r"mosh",
+            r"^zsh\s", r"^bash\s", r"^sh\s", r"^fish\s", r"^tcsh\s", r"^csh\s",
+            r"^ssh\s", r"sshd", r"tmux", r"screen", r"mosh",
+        ],
+        # USER_APPS: Main application processes to NEVER kill
+        # Only their helper/worker processes can be killed
+        # Note: Patterns use \b (word boundary) or \s to avoid matching helpers
+        ProcessCategory.USER_APPS: [
+            # Browsers - MAIN processes only (helpers are in KILLABLE)
+            # Use negative lookahead (?!.*Helper) to exclude helper processes
+            r"^Google Chrome(?!\s*Helper)", r"Google Chrome\.app",
+            r"^Brave Browser(?!.*Helper)", r"Brave\.app", r"^Brave(?!.*Helper)",
+            r"^Safari(?!\s*(Web|Net))", r"Safari\.app",
+            r"^Firefox(?!\s*Content)", r"Firefox\.app",
+            r"^Arc(?!\s*Helper)", r"Arc\.app",
+            r"^Microsoft Edge(?!\s*Helper)", r"Edge\.app",
+            r"^Opera(?!\s*Helper)", r"Opera\.app",
+            # Media players - MAIN processes only
+            r"^Spotify(?!\s*Helper)", r"Spotify\.app",
+            r"^Music\s", r"^iTunes\s",
+            r"^VLC\s", r"VLC\.app",
+            r"^IINA\s", r"IINA\.app",
+            r"^QuickTime Player\s",
+            # Communication - MAIN processes only
+            r"^Slack(?!\s*Helper)", r"Slack\.app",
+            r"^Discord(?!\s*Helper)", r"Discord\.app",
+            r"^Zoom\.us(?!\s*Helper)", r"zoom\.us\.app",
+            r"^Microsoft Teams(?!\s*Helper)", r"Teams\.app",
+            r"^Messages\s", r"^FaceTime\s",
+            r"^WhatsApp\s", r"^Telegram\s", r"^Signal\s",
+            # Remote desktop - MAIN processes only
+            r"^Splashtop Streamer\s", r"Splashtop Streamer\.app",
+            r"^Splashtop Business\s", r"Splashtop Business\.app",
+            r"^Splashtop Personal\s", r"Splashtop Personal\.app",
+            r"^SRServer\s",  # Splashtop server process
+            r"^SRAgent\s",   # Splashtop agent
+            r"^SRUtility\s", # Splashtop utility
         ],
     }
 
     # Processes safe to kill when using high resources
+    # NOTE: Only HELPER/WORKER processes - NOT main application processes
     KILLABLE_PATTERNS = {
         ProcessCategory.BROWSER: [
+            # Browser HELPER processes only - NOT main browser apps
             r"Chrome Helper", r"Google Chrome Helper",
+            r"Brave Browser Helper", r"Brave Helper",
             r"Safari Web Content", r"Safari Networking",
-            r"Firefox", r"firefox-bin",
-            r"Brave Browser", r"Microsoft Edge",
-            r"Arc Helper", r"Opera",
+            r"firefox-bin", r"Firefox Content",  # Content processes only
+            r"Arc Helper",
+            r"Microsoft Edge Helper", r"Edge Helper",
+            r"Opera Helper",
         ],
         ProcessCategory.COMMUNICATION: [
-            r"Slack Helper", r"Discord Helper", r"Teams",
-            r"WhatsApp", r"Telegram", r"Signal", r"Messages",
-            r"Zoom", r"Skype", r"FaceTime",
+            # Communication HELPER processes only
+            r"Slack Helper",
+            r"Discord Helper",
+            r"Teams Helper", r"Microsoft Teams Helper",
+            r"Zoom Helper",
+            r"Skype Helper",
         ],
         ProcessCategory.CLOUD_SYNC: [
             r"Dropbox", r"Google Drive", r"OneDrive",
             r"iCloud", r"Box Sync", r"Sync",
         ],
         ProcessCategory.MEDIA: [
-            r"Spotify Helper", r"Music$", r"iTunes",
-            r"Photos$", r"Preview$", r"QuickTime",
-            r"VLC", r"IINA",
+            # Media HELPER processes only - NOT main apps
+            r"Spotify Helper",
+            r"Photos$", r"Preview$",  # Apple's built-in apps are less critical
         ],
         ProcessCategory.BACKGROUND: [
             r"mds_stores", r"photoanalysisd", r"photolibraryd",
@@ -155,10 +197,11 @@ class ProcessScorer:
         ProcessCategory.SYSTEM_CRITICAL: -1000,
         ProcessCategory.DEVELOPMENT: -500,
         ProcessCategory.TERMINAL: -500,
-        ProcessCategory.BROWSER: 20,
-        ProcessCategory.COMMUNICATION: 15,
+        ProcessCategory.USER_APPS: -400,  # Protected user apps (browsers, media, communication)
+        ProcessCategory.BROWSER: 20,  # Browser helpers only
+        ProcessCategory.COMMUNICATION: 15,  # Communication helpers only
         ProcessCategory.CLOUD_SYNC: 25,
-        ProcessCategory.MEDIA: 10,
+        ProcessCategory.MEDIA: 10,  # Media helpers only
         ProcessCategory.BACKGROUND: 30,
         ProcessCategory.UNKNOWN: 0,
     }
@@ -193,14 +236,19 @@ class ProcessScorer:
         """Determine process category based on name and command line"""
         search_text = f"{name} {cmdline}"
 
-        # Check protected patterns first
-        for category in [ProcessCategory.SYSTEM_CRITICAL, ProcessCategory.DEVELOPMENT, ProcessCategory.TERMINAL]:
+        # Check protected patterns first (order matters - most protected first)
+        for category in [
+            ProcessCategory.SYSTEM_CRITICAL,
+            ProcessCategory.DEVELOPMENT,
+            ProcessCategory.TERMINAL,
+            ProcessCategory.USER_APPS,  # Check USER_APPS before BROWSER helpers
+        ]:
             if category in self._compiled_patterns:
                 for pattern in self._compiled_patterns[category]:
                     if pattern.search(search_text):
                         return category
 
-        # Check killable patterns
+        # Check killable patterns (only helper processes should match here)
         for category in [ProcessCategory.BROWSER, ProcessCategory.COMMUNICATION,
                         ProcessCategory.CLOUD_SYNC, ProcessCategory.MEDIA, ProcessCategory.BACKGROUND]:
             if category in self._compiled_patterns:
@@ -217,8 +265,13 @@ class ProcessScorer:
         if pid in self.parent_pids:
             return True
 
-        # Protect system-critical and development processes
-        if category in [ProcessCategory.SYSTEM_CRITICAL, ProcessCategory.DEVELOPMENT, ProcessCategory.TERMINAL]:
+        # Protect system-critical, development, terminal, and user apps
+        if category in [
+            ProcessCategory.SYSTEM_CRITICAL,
+            ProcessCategory.DEVELOPMENT,
+            ProcessCategory.TERMINAL,
+            ProcessCategory.USER_APPS,  # Browsers, media players, communication apps
+        ]:
             return True
 
         # Protect processes with children (likely doing work)

@@ -10,7 +10,7 @@
 ![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-00D4FF?style=for-the-badge)
 ![CI](https://img.shields.io/github/actions/workflow/status/PRSMTECH/macbook-turbo/ci.yml?style=for-the-badge&label=CI&color=00D4FF)
-![Version](https://img.shields.io/badge/Version-1.0.0-FF6B6B?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-2.1.0-FF6B6B?style=for-the-badge)
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=24&height=2&section=header" width="100%"/>
 
@@ -174,7 +174,7 @@ Automatically finds and cleans:
 </details>
 
 <details>
-<summary><strong>🛡️ Developer Protection</strong></summary>
+<summary><strong>🛡️ Smart Protection System (v2.1.0)</strong></summary>
 
 Uses a **multi-factor scoring algorithm**:
 
@@ -182,10 +182,23 @@ Uses a **multi-factor scoring algorithm**:
 Score = (CPU × 0.4) + (Memory × 0.3) + (FDs × 0.1) + (Age × 0.1) + (Category × 0.1)
 ```
 
+**NEW in v2.1.0**: Main apps are ALWAYS protected, only helper processes are killable!
+
+| Protected (Never Killed) | Killable (When High CPU) |
+|--------------------------|--------------------------|
+| Google Chrome | Chrome Helper |
+| Brave Browser | Brave Browser Helper |
+| Spotify | Spotify Helper |
+| Slack, Discord, Zoom | Slack Helper, etc. |
+| VS Code, Cursor, Xcode | - |
+| Terminal, iTerm2 | - |
+| Splashtop Streamer | - |
+
 Protected categories:
+- **User Apps**: Chrome, Brave, Safari, Firefox, Spotify, Slack, Discord, Splashtop
 - **IDEs**: VS Code, Cursor, Xcode, IntelliJ, PyCharm
 - **Terminals**: Terminal.app, iTerm2, Hyper, Alacritty
-- **Dev Tools**: Node, Python, Docker, Git
+- **Dev Tools**: Node, Python, Docker, Git, Claude Code
 - **Shells**: zsh, bash, fish
 
 </details>
@@ -418,10 +431,13 @@ macbook-turbo/
 │   ├── thermal_monitor.py     #     Temperature monitoring
 │   ├── memory_monitor.py      #     Memory tracking
 │   ├── disk_cleaner.py        #     Disk cleanup
-│   └── process_scorer.py      #     Process scoring
+│   ├── process_scorer.py      #     Process scoring
+│   └── apple_silicon_monitor.py  # NEW: M1/M2/M3/M4 support
 ├── bin/                       # ⚡  Quick CLI commands
 ├── docs/                      # 📖  Documentation
 ├── config/                    # ⚙️  Configuration files
+│   ├── protected-processes.sh #     Protected process list
+│   └── settings.py            # NEW: Settings persistence
 ├── install.sh                 # 📦  One-line installer
 └── uninstall.sh               # 🗑️  Uninstaller
 ```
