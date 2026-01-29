@@ -1,0 +1,59 @@
+#!/bin/bash
+# MacBook Turbo Launcher
+# One-click launcher for the CPU monitoring menu bar app
+
+# Get the app bundle's directory
+APP_DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
+
+# If launched from .app bundle, find the actual project directory
+if [[ "$APP_DIR" == *".app"* ]]; then
+    # App is inside the project directory
+    PROJECT_DIR="$(dirname "$APP_DIR")"
+else
+    PROJECT_DIR="$APP_DIR"
+fi
+
+# Fallback: Look for the project in common locations
+if [ ! -f "$PROJECT_DIR/src/cpu-menubar-enhanced.py" ]; then
+    for dir in \
+        "$HOME/PRSMTECH/macbook-turbo" \
+        "$HOME/macbook-turbo" \
+        "/Users/bigswizz/PRSMTECH/macbook-turbo"; do
+        if [ -f "$dir/src/cpu-menubar-enhanced.py" ]; then
+            PROJECT_DIR="$dir"
+            break
+        fi
+    done
+fi
+
+# Verify project exists
+if [ ! -f "$PROJECT_DIR/src/cpu-menubar-enhanced.py" ]; then
+    osascript -e 'display alert "MacBook Turbo" message "Could not find the MacBook Turbo installation. Please reinstall." as critical'
+    exit 1
+fi
+
+cd "$PROJECT_DIR"
+
+# Check if virtual environment exists
+if [ -d "$PROJECT_DIR/venv" ]; then
+    source "$PROJECT_DIR/venv/bin/activate"
+fi
+
+# Check dependencies
+python3 -c "import rumps, psutil" 2>/dev/null
+if [ $? -ne 0 ]; then
+    osascript -e 'display notification "Installing dependencies..." with title "MacBook Turbo"'
+    pip3 install rumps psutil --quiet
+fi
+
+# Check if already running
+if pgrep -f "cpu-menubar-enhanced.py" > /dev/null; then
+    osascript -e 'display notification "MacBook Turbo is already running! Look for it in your menu bar." with title "MacBook Turbo"'
+    exit 0
+fi
+
+# Launch the menu bar app
+osascript -e 'display notification "Starting CPU monitor..." with title "MacBook Turbo"'
+exec python3 "$PROJECT_DIR/src/cpu-menubar-enhanced.py" &
+
+exit 0
