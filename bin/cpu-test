@@ -1,3 +1,5 @@
 #!/bin/bash
-# Test Protection
-/Users/bigswizz/cpu-monitor/test-protection.sh
+# Test Protection System
+# Uses dynamic path resolution
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+"${SCRIPT_DIR}/scripts/test-protection.sh"

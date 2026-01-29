@@ -1,3 +1,5 @@
 #!/bin/bash
 # Quick CPU Status Check
-/Users/bigswizz/cpu-monitor/check-protection-status.sh
+# Uses dynamic path resolution
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+"${SCRIPT_DIR}/scripts/check-protection-status.sh"

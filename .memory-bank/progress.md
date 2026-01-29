@@ -5,6 +5,13 @@
 
 ## Completed This Session
 
+### 2026-01-29 - v2.1.1 Cleanup & Organization
+- ✅ Added protected apps: Antigravity, GitHub Desktop, Claude Desktop
+- ✅ Fixed broken paths in bin/ (cpu-clean, cpu-status, cpu-test)
+- ✅ Archived legacy cpu-menubar.py to archive/
+- ✅ Fixed file permissions on all scripts
+- ✅ Project cleanup and organization complete
+
 ### 2026-01-29 - v2.1.0 Protection System Rebuild
 - ✅ Added USER_APPS ProcessCategory for main app protection
 - ✅ Updated process_scorer.py with negative lookahead regex patterns
@@ -54,7 +61,14 @@
 - **Visibility**: Public
 
 ## Current Status
-🚀 **v2.1.0 IN PROGRESS - Protection System Overhaul Complete!**
+✅ **v2.1.0 SHIPPED!** (f168e70) - Protection System Overhaul Complete!
+
+### Deployment - 2026-01-29
+- **URL**: https://github.com/PRSMTECH/macbook-turbo
+- **Tag**: v2.1.0
+- **Commit**: f168e70
+- **Branch**: main
+- **Changes**: Smart protection system, USER_APPS category, thread safety, settings persistence, Apple Silicon monitor
 
 ## New Files This Session
 - `config/settings.py` - Settings persistence manager

@@ -127,6 +127,11 @@ NEVER_KILL=(
     "SRServer"
     "SRAgent"
     "SRUtility"
+
+    # Other protected applications
+    "Antigravity"
+    "GitHub Desktop"
+    "Claude"
 )
 
 # Processes that CAN be killed when using excessive CPU

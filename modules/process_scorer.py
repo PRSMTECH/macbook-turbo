@@ -141,6 +141,10 @@ class ProcessScorer:
             r"^SRServer\s",  # Splashtop server process
             r"^SRAgent\s",   # Splashtop agent
             r"^SRUtility\s", # Splashtop utility
+            # Other protected applications
+            r"^Antigravity(?!\s*Helper)", r"Antigravity\.app",
+            r"^GitHub Desktop(?!\s*Helper)", r"GitHub Desktop\.app",
+            r"^Claude(?!\s*Helper)", r"Claude\.app",  # Claude Desktop
         ],
     }
 
