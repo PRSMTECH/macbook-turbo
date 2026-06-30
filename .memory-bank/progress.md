@@ -5,6 +5,16 @@
 
 ## Completed This Session
 
+### 2026-06-29 - v2.2.0 Intel i9 Optimization + Startup Repair
+- ✅ Diagnosed live system: 3 broken `com.user.*` LaunchAgents (exit 127/78, dead path), duplicate Login Items, rogue process from a 2nd repo clone (Xcode Python 3.9)
+- ✅ Repaired startup: removed stale agents + login items, stopped rogue process, moved stray clone to `~/.macbook-turbo-backups/`, installed one correct venv-based LaunchAgent
+- ✅ Created `modules/intel_optimizer.py` — throttle %, Turbo Boost, GPU switch, Low Power, model-aware advice
+- ✅ Menu bar: "⚡ Performance (Intel)" submenu + live state + 🐢 throttle glyph in title
+- ✅ `scripts/optimize-intel.sh` + `macos-speed-tweaks.sh` + `install-launch-agent.sh`
+- ✅ `docs/INTEL-OPTIMIZATION.md`; README → v2.2.0 + readme-style refresh
+- ✅ Archived 5 obsolete startup scripts; flake8/bandit clean
+- ✅ Observed live CPU throttle as low as 35% speed (validates thermal-first approach)
+
 ### 2026-01-29 - v2.1.1 Cleanup & Organization
 - ✅ Added protected apps: Antigravity, GitHub Desktop, Claude Desktop
 - ✅ Fixed broken paths in bin/ (cpu-clean, cpu-status, cpu-test)
@@ -102,4 +112,5 @@ curl -fsSL https://raw.githubusercontent.com/PRSMTECH/macbook-turbo/main/install
 - [x] PRSMTECH README styling applied
 - [x] **v2.1.0 Protection system overhaul** ← LATEST
 - [x] **Thread safety & settings persistence** ← LATEST
-- [x] **Apple Silicon monitoring** ← LATEST
+- [x] **Apple Silicon monitoring**
+- [x] **v2.2.0 Intel i9 optimizer + startup repair** ← LATEST

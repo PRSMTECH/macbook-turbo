@@ -17,6 +17,7 @@ Features:
 import subprocess
 import os
 import sys
+import platform
 import time
 import threading
 from threading import RLock, Lock
@@ -36,8 +37,9 @@ except ImportError:
 
 # Add modules and config directories to path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-MODULES_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'modules')
-CONFIG_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'config')
+REPO_DIR = os.path.dirname(SCRIPT_DIR)
+MODULES_DIR = os.path.join(REPO_DIR, 'modules')
+CONFIG_DIR = os.path.join(REPO_DIR, 'config')
 if MODULES_DIR not in sys.path:
     sys.path.insert(0, MODULES_DIR)
 if CONFIG_DIR not in sys.path:
@@ -56,6 +58,12 @@ except ImportError as e:
     ThermalMonitor = None
     MemoryMonitor = None
     DiskCleaner = None
+
+# Import Intel optimizer (Intel Macs only)
+try:
+    from intel_optimizer import IntelOptimizer
+except ImportError:
+    IntelOptimizer = None
 
 # Import settings module
 try:
@@ -130,6 +138,12 @@ class EnhancedCPUMonitorApp(rumps.App):
         self.thermal_monitor = ThermalMonitor() if ThermalMonitor else None
         self.memory_monitor = MemoryMonitor() if MemoryMonitor else None
         self.disk_cleaner = DiskCleaner() if DiskCleaner else None
+        self.intel_optimizer = (
+            IntelOptimizer()
+            if (IntelOptimizer and platform.machine() == "x86_64")
+            else None
+        )
+        self._last_intel_status = None
 
         # State (protected by _state_lock) - load from settings if available
         self._auto_clean_mode = self._load_auto_clean_mode()
@@ -148,6 +162,11 @@ class EnhancedCPUMonitorApp(rumps.App):
         # Start thermal monitoring in background (less frequent)
         self.thermal_timer = rumps.Timer(self.update_thermal, 10)
         self.thermal_timer.start()
+
+        # Start Intel performance monitoring (Intel Macs only)
+        if self.intel_optimizer:
+            self.perf_timer = rumps.Timer(self.update_performance, 10)
+            self.perf_timer.start()
 
     # Thread-safe property accessors
     @property
@@ -210,6 +229,7 @@ class EnhancedCPUMonitorApp(rumps.App):
         self.mem_item = rumps.MenuItem("Memory: Loading...", callback=None)
         self.thermal_item = rumps.MenuItem("Thermal: Loading...", callback=None)
         self.disk_item = rumps.MenuItem("Disk: Loading...", callback=None)
+        self.perf_item = rumps.MenuItem("⚡ Performance: Loading...", callback=None)
 
         # Build cleanup submenu
         cleanup_menu = rumps.MenuItem("🧹 Cleanup")
@@ -243,17 +263,45 @@ class EnhancedCPUMonitorApp(rumps.App):
         self.mode_balanced.state = self._auto_clean_mode == AutoCleanMode.BALANCED
         self.mode_aggressive.state = self._auto_clean_mode == AutoCleanMode.AGGRESSIVE
 
+        # Build Intel performance submenu (Intel Macs only)
+        self.perf_menu = None
+        if self.intel_optimizer:
+            self.perf_menu = rumps.MenuItem("⚡ Performance (Intel)")
+            self.turbo_state_item = rumps.MenuItem("Turbo Boost: …", callback=None)
+            self.gpu_state_item = rumps.MenuItem("GPU: …", callback=None)
+            self.power_state_item = rumps.MenuItem("Low Power Mode: …", callback=None)
+            self.perf_menu.add(self.turbo_state_item)
+            self.perf_menu.add(self.gpu_state_item)
+            self.perf_menu.add(self.power_state_item)
+            self.perf_menu.add(rumps.separator)
+            self.perf_menu.add(rumps.MenuItem("❄️ Cool Down Now (combo)", callback=self.action_cool_now))
+            self.perf_menu.add(rumps.MenuItem("🧊 Force Integrated GPU", callback=self.action_gpu_integrated))
+            self.perf_menu.add(rumps.MenuItem("🔀 Auto GPU (revert)", callback=self.action_gpu_auto))
+            self.perf_menu.add(rumps.MenuItem("🐢 Disable Turbo Boost", callback=self.action_turbo_off))
+            self.perf_menu.add(rumps.MenuItem("🚀 Enable Turbo Boost", callback=self.action_turbo_on))
+            self.perf_menu.add(rumps.MenuItem("🔋 Low Power Mode On", callback=self.action_lowpower_on))
+            self.perf_menu.add(rumps.MenuItem("↩️ Revert Intel Tweaks", callback=self.action_intel_revert))
+            self.perf_menu.add(rumps.separator)
+            self.perf_menu.add(rumps.MenuItem("⚡ Apply UI Speed Tweaks", callback=self.action_ui_tweaks_apply))
+            self.perf_menu.add(rumps.MenuItem("↩️ Revert UI Speed Tweaks", callback=self.action_ui_tweaks_revert))
+
         # Build main menu
-        self.menu = [
+        status_section = [
             rumps.MenuItem("📊 System Status", callback=None),
             self.cpu_item,
             self.mem_item,
             self.thermal_item,
             self.disk_item,
-            None,  # Separator
-            cleanup_menu,
-            analysis_menu,
-            automode_menu,
+        ]
+        if self.intel_optimizer:
+            status_section.append(self.perf_item)
+
+        tools_section = [cleanup_menu, analysis_menu]
+        if self.perf_menu:
+            tools_section.append(self.perf_menu)
+        tools_section.append(automode_menu)
+
+        self.menu = status_section + [None] + tools_section + [
             None,  # Separator
             rumps.MenuItem("👁️ Toggle Detailed View", callback=self.toggle_detailed),
             None,  # Separator
@@ -305,11 +353,17 @@ class EnhancedCPUMonitorApp(rumps.App):
             else:
                 mem_emoji = "🟢"
 
+            # Throttle indicator (Intel throttle-prone machines)
+            throttle_suffix = ""
+            if self._last_intel_status and self._last_intel_status.is_throttled:
+                if self._last_intel_status.speed_limit_percent < 70:
+                    throttle_suffix = " 🐢"
+
             # Update menu bar title
             if self.show_detailed:
-                self.title = f"{cpu_emoji}{cpu_percent:.0f}% {mem_emoji}{memory_percent:.0f}%"
+                self.title = f"{cpu_emoji}{cpu_percent:.0f}% {mem_emoji}{memory_percent:.0f}%{throttle_suffix}"
             else:
-                self.title = f"{cpu_emoji} {cpu_percent:.0f}%"
+                self.title = f"{cpu_emoji} {cpu_percent:.0f}%{throttle_suffix}"
 
             # Update menu items using stored references
             self.cpu_item.title = f"CPU: {cpu_percent:.1f}% {cpu_emoji}"
@@ -836,6 +890,124 @@ class EnhancedCPUMonitorApp(rumps.App):
             "Display Mode",
             "Detailed view" if self.show_detailed else "Simple view",
             "Menu bar display updated"
+        )
+
+    # ----- Intel performance actions ------------------------------------
+
+    def update_performance(self, _):
+        """Refresh Intel throttle/turbo/GPU/power state (Intel only)."""
+        if not self.intel_optimizer:
+            return
+        try:
+            status = self.intel_optimizer.get_status()
+            self._last_intel_status = status
+            sl = status.speed_limit_percent
+            sl_emoji = self.intel_optimizer.get_speed_limit_emoji(sl)
+            if status.is_throttled:
+                self.perf_item.title = f"⚡ Throttled to {sl}% speed {sl_emoji}"
+            else:
+                self.perf_item.title = f"⚡ Full speed {sl_emoji}"
+
+            if hasattr(self, "turbo_state_item"):
+                self.turbo_state_item.title = (
+                    f"Turbo Boost: {status.turbo_state.value} "
+                    f"{self.intel_optimizer.get_turbo_emoji(status.turbo_state)}"
+                )
+                self.gpu_state_item.title = (
+                    f"GPU: {status.gpu_mode.value} "
+                    f"{self.intel_optimizer.get_gpu_emoji(status.gpu_mode)}"
+                )
+                low = status.power_mode.value == "low_power"
+                self.power_state_item.title = (
+                    f"Low Power Mode: {'on' if low else 'off'}"
+                )
+        except Exception as e:
+            print(f"Performance update error: {e}")
+
+    def _intel_script(self) -> str:
+        return os.path.join(REPO_DIR, "scripts", "optimize-intel.sh")
+
+    def _run_in_terminal(self, command: str, announce: str = ""):
+        """Open Terminal.app and run a command (so sudo prompts are visible)."""
+        if announce:
+            rumps.notification("MacBook Turbo", announce, "Opening Terminal…")
+        applescript = (
+            'tell application "Terminal"\n'
+            '  activate\n'
+            f'  do script "{command}"\n'
+            'end tell'
+        )
+        try:
+            subprocess.run(["osascript", "-e", applescript], check=False)
+        except Exception as e:
+            rumps.alert("MacBook Turbo", f"Could not open Terminal: {e}")
+
+    def _run_script_bg(self, args, success_msg: str):
+        """Run a repo script in the background and notify on completion."""
+        def worker():
+            try:
+                script = os.path.join(REPO_DIR, "scripts", args[0])
+                subprocess.run(
+                    ["bash", script] + list(args[1:]),
+                    capture_output=True, text=True, timeout=90
+                )
+                rumps.notification("MacBook Turbo", success_msg, "")
+            except Exception as e:
+                rumps.notification("MacBook Turbo", "Error", str(e))
+        threading.Thread(target=worker, daemon=True).start()
+
+    def action_cool_now(self, _):
+        self._run_in_terminal(
+            f"{self._intel_script()} cool-now",
+            "Cool-down combo (needs your password)"
+        )
+
+    def action_gpu_integrated(self, _):
+        self._run_in_terminal(
+            f"{self._intel_script()} gpu-integrated",
+            "Forcing integrated GPU (needs your password)"
+        )
+
+    def action_gpu_auto(self, _):
+        self._run_in_terminal(
+            f"{self._intel_script()} gpu-auto",
+            "Restoring automatic GPU (needs your password)"
+        )
+
+    def action_turbo_off(self, _):
+        self._run_in_terminal(
+            f"{self._intel_script()} turbo-off",
+            "Disabling Turbo Boost"
+        )
+
+    def action_turbo_on(self, _):
+        self._run_in_terminal(
+            f"{self._intel_script()} turbo-on",
+            "Enabling Turbo Boost"
+        )
+
+    def action_lowpower_on(self, _):
+        self._run_in_terminal(
+            f"{self._intel_script()} lowpower-on",
+            "Enabling Low Power Mode (needs your password)"
+        )
+
+    def action_intel_revert(self, _):
+        self._run_in_terminal(
+            f"{self._intel_script()} revert",
+            "Reverting Intel tweaks (needs your password)"
+        )
+
+    def action_ui_tweaks_apply(self, _):
+        self._run_script_bg(
+            ["macos-speed-tweaks.sh", "apply"],
+            "UI speed tweaks applied"
+        )
+
+    def action_ui_tweaks_revert(self, _):
+        self._run_script_bg(
+            ["macos-speed-tweaks.sh", "revert"],
+            "UI speed tweaks reverted"
         )
 
 

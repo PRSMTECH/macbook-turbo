@@ -195,7 +195,7 @@ class DiskCleaner:
 
             # Temporary files
             CleanupTarget(
-                path="/tmp",
+                path="/tmp",  # nosec B108 - cleanup target, not insecure temp-file creation
                 category=CleanupCategory.TEMP_FILES,
                 description="System temp files",
                 min_age_days=1

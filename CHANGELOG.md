@@ -54,6 +54,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-06-29
+
+### Added
+- **Intel optimizer module** (`modules/intel_optimizer.py`) — detects the chip,
+  Turbo Boost state, discrete-GPU switching mode, Low Power Mode, and live CPU
+  speed-limit (throttle %). Includes model-aware advice, with special handling
+  for the throttle-prone 2018 i9 (`MacBookPro15,1`).
+- **Intel Performance submenu** in the menu bar — live Turbo/GPU/Low-Power state
+  plus one-click actions: Cool Down Now, Force Integrated GPU, Disable Turbo
+  Boost, Low Power Mode, and revert. A 🐢 appears in the menu-bar title when the
+  CPU is heavily throttled.
+- **`scripts/optimize-intel.sh`** — reversible Intel thermal levers (Turbo Boost,
+  GPU switching, Low Power Mode) with a combined `cool-now` command.
+- **`scripts/macos-speed-tweaks.sh`** — per-user, reversible UI/animation
+  speedups (no sudo) for a snappier desktop and faster key repeat.
+- **`scripts/install-launch-agent.sh`** — location-independent LaunchAgent
+  installer that resolves its own repo path (can't drift to a dead path).
+- **`docs/INTEL-OPTIMIZATION.md`** — full guide to the i9 throttling levers.
+
+### Fixed
+- **Broken startup** — removed stale `com.user.*` LaunchAgents that pointed at a
+  deleted path (exit codes 127/78) and consolidated to a single working agent
+  using the project's venv Python instead of the dependency-less system Python.
+- README manual auto-start step now uses `install-launch-agent.sh` instead of a
+  non-existent plist.
+
+### Changed
+- Menu bar restructured to surface throttle/thermal state first.
+- Archived obsolete old-startup shell scripts (`cpu-status.sh`,
+  `cpu-monitor-smart.sh`, `cpu-manager-startup.sh`, `deploy-cpu-fix.sh`,
+  `verify-startup.sh`) to `archive/deprecated-scripts/`.
+
+---
+
 ## [Unreleased]
 
 ### Planned

@@ -6,13 +6,13 @@
 
 <br/>
 
-![macOS](https://img.shields.io/badge/macOS-Sonoma%20%7C%20Ventura%20%7C%20Monterey-000000?style=for-the-badge&logo=apple&logoColor=white)
+![macOS](https://img.shields.io/badge/macOS-Sequoia%20%7C%20Sonoma%20%7C%20Ventura-000000?style=for-the-badge&logo=apple&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-00D4FF?style=for-the-badge)
 ![CI](https://img.shields.io/github/actions/workflow/status/PRSMTECH/macbook-turbo/ci.yml?style=for-the-badge&label=CI&color=00D4FF)
-![Version](https://img.shields.io/badge/Version-2.1.0-FF6B6B?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-2.2.0-FF6B6B?style=for-the-badge)
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=24&height=2&section=header" width="100%"/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt="rainbow line" />
 
 **Intelligent macOS System Optimizer & CPU Monitor**
 
@@ -34,6 +34,7 @@
 | 🧹 **Cleans up junk files** | Free up disk space automatically |
 | 🛡️ **Protects your work apps** | Never kills VS Code, Terminal, etc. |
 | 🌡️ **Monitors temperature** | Prevents overheating issues |
+| ⚡ **Fights Intel throttling** | Keeps the 2018 i9 from slowing to a crawl |
 | 📊 **Shows status in menu bar** | Always know your Mac's health |
 
 ---
@@ -214,6 +215,33 @@ Monitors your Mac's temperature to:
 </details>
 
 <details>
+<summary><strong>⚡ Intel Throttle Optimizer (2018 i9 tuned)</strong></summary>
+
+On Intel Macs — especially the throttle-prone 2018 15" MacBook Pro
+(`MacBookPro15,1`, Core i9-8950HK) — the bottleneck is **heat, not clock speed**.
+MacBook Turbo shows the live CPU **speed limit** (throttle %) and gives you
+one-click, reversible levers to fix it:
+
+| Lever | What it does |
+|-------|--------------|
+| ❄️ **Cool Down Now** | Integrated GPU + Low Power Mode + Turbo off, in one click |
+| 🐢 **Disable Turbo Boost** | Caps peak heat — usually *raises* sustained speed |
+| 🧊 **Force Integrated GPU** | Parks the hot discrete Radeon GPU |
+| 🔋 **Low Power Mode** | Cooler, quieter, longer battery |
+
+A 🐢 appears in the menu bar when the CPU is heavily throttled. From the CLI:
+
+```bash
+./scripts/optimize-intel.sh status     # show live throttle / turbo / GPU state
+./scripts/optimize-intel.sh cool-now   # apply the full cool-down combo
+./scripts/optimize-intel.sh revert     # undo everything
+```
+
+See [docs/INTEL-OPTIMIZATION.md](docs/INTEL-OPTIMIZATION.md) for the full guide.
+
+</details>
+
+<details>
 <summary><strong>⚡ Auto-Cleanup Modes</strong></summary>
 
 | Mode | When It Cleans |
@@ -271,12 +299,16 @@ python src/cpu-menubar-enhanced.py
 ### Make It Start Automatically
 
 ```bash
-# Copy the LaunchAgent
-cp config/com.user.cpumanager.plist ~/Library/LaunchAgents/com.prsmtech.macbookturbo.plist
+# Installs a LaunchAgent pointing at this repo's venv and loads it now + at login
+./scripts/install-launch-agent.sh
 
-# Load it
-launchctl load ~/Library/LaunchAgents/com.prsmtech.macbookturbo.plist
+# Check status, or remove it later
+./scripts/install-launch-agent.sh --status
+./scripts/install-launch-agent.sh --uninstall
 ```
+
+The installer resolves its own path, so the agent never drifts to a stale
+location even if you move the folder.
 
 </details>
 
@@ -422,6 +454,9 @@ macbook-turbo/
 │   └── system-optimizer.py    #     Command line tool
 ├── scripts/                   # 🔧  Shell scripts
 │   ├── cpu-cleanup-enhanced.sh#     Smart cleanup script
+│   ├── optimize-intel.sh      # NEW: Intel thermal levers (Turbo/GPU/Low Power)
+│   ├── macos-speed-tweaks.sh  # NEW: per-user UI speedups
+│   ├── install-launch-agent.sh# NEW: run-at-login installer
 │   └── check-protection-status.sh
 ├── launchers/                 # 🖱️  Double-click launchers
 │   ├── START-CPU-MONITOR.command
@@ -432,7 +467,8 @@ macbook-turbo/
 │   ├── memory_monitor.py      #     Memory tracking
 │   ├── disk_cleaner.py        #     Disk cleanup
 │   ├── process_scorer.py      #     Process scoring
-│   └── apple_silicon_monitor.py  # NEW: M1/M2/M3/M4 support
+│   ├── apple_silicon_monitor.py  #  M1/M2/M3/M4 support
+│   └── intel_optimizer.py     # NEW: Intel + 2018 i9 throttle optimizer
 ├── bin/                       # ⚡  Quick CLI commands
 ├── docs/                      # 📖  Documentation
 ├── config/                    # ⚙️  Configuration files
@@ -466,7 +502,7 @@ See the [LICENSE](LICENSE) file for details.
 
 <div align="center">
 
-<img src="https://capsule-render.vercel.app/api?type=rect&color=gradient&customColorList=24&height=2&section=header" width="100%"/>
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/rainbow.png" width="100%" alt="rainbow line" />
 
 <br/>
 
@@ -475,9 +511,14 @@ See the [LICENSE](LICENSE) file for details.
 <br/>
 
 [![GitHub](https://img.shields.io/badge/GitHub-PRSMTECH-181717?style=for-the-badge&logo=github)](https://github.com/PRSMTECH)
+[![Repo](https://img.shields.io/badge/←_Back_to-macbook--turbo-00D4FF?style=for-the-badge)](https://github.com/PRSMTECH/macbook-turbo)
 
 <br/>
 
 *If MacBook Turbo helped you, consider giving it a ⭐ on GitHub!*
+
+**Last Updated**: June 2026 · **Version**: 2.2.0 · **Status**: ✅ Active
+
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=24&height=80&section=footer" width="100%" />
 
 </div>

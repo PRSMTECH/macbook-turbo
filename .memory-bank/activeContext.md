@@ -1,61 +1,48 @@
 # Active Context
 
-**Last Updated**: 2026-01-29
+**Last Updated**: 2026-06-29
 
 ## Current Focus
-- **v2.1.0 Protection System Overhaul** - Complete rebuild of process protection
-- CPU monitor running with enhanced thread safety
-- Settings persistence implemented
-- Apple Silicon monitoring added
+- **v2.2.0 Intel i9 Optimization + Startup Repair** — machine-specific tuning for
+  the 2018 15" MacBook Pro (`MacBookPro15,1`, Core i9-8950HK)
 
-## Active Features
-- CPU/Memory/Thermal menu bar monitor (v2.0)
-- **NEW: USER_APPS protection category** - Main apps protected, only helpers killed
-- **NEW: Thread-safe state management** - RLock/Lock for concurrent access
-- **NEW: Settings persistence** - `~/Library/Preferences/com.prsmtech.macbookturbo.json`
-- **NEW: Apple Silicon monitor** - M1/M2/M3/M4 chip detection & thermal pressure
-- **NEW: Splashtop protection** - Remote desktop apps never killed
-- Intelligent process management with developer protection
-- Modular architecture with 5 specialized monitors
-- Auto-cleanup modes (Off/Conservative/Balanced/Aggressive)
+## Machine context (this Mac)
+- `MacBookPro15,1` · Intel i9-8950HK (6c/12t) · 32 GB · macOS 15.6 Sequoia · x86_64
+- Severe thermal throttling — observed CPU speed limit as low as **35%** under load
+- Discrete Radeon Pro 560X (heat source) + Intel UHD 630 (cool); auto GPU switching on
 
-## Completed This Session (2026-01-29)
+## Completed This Session (2026-06-29)
 
-### Phase 1: Protection System Overhaul
-- Added `USER_APPS` ProcessCategory for main application protection
-- Updated regex patterns with negative lookahead to exclude helper processes
-- Protected: Google Chrome, Brave, Safari, Firefox, Spotify, Slack, Discord, Splashtop
-- Killable helpers: Chrome Helper, Brave Helper, Safari Web Content, Spotify Helper, etc.
+### Live system repair
+- Removed 3 broken `com.user.*` LaunchAgents (dead `/Users/bigswizz/cpu-monitor`
+  path, exit codes 127/78)
+- Removed duplicate `MacBookTurbo` / `cpu-menubar.py` Login Items (kept Google
+  Drive, Claude)
+- Stopped rogue menu bar process (ran from a 2nd repo clone via Xcode Python 3.9)
+- Moved stray duplicate clone `/Users/bigswizz/PRSMTECH/macbook-turbo` →
+  `~/.macbook-turbo-backups/<ts>/`
+- Installed ONE correct LaunchAgent (`com.prsmtech.macbookturbo`) via
+  `scripts/install-launch-agent.sh`, pointing at this repo's venv. Loaded + runs at login.
 
-### Phase 2: Thread Safety
-- Added `RLock` for state protection (`auto_clean_mode`, `last_clean_time`)
-- Added `Lock` for status updates and cleanup operations
-- Fixed background cleanup with proper `try/finally` lock release
-- Created thread-safe property accessors
+### New Intel features
+- `modules/intel_optimizer.py` — throttle %, Turbo Boost, GPU switch, Low Power, advice
+- Menu bar: "⚡ Performance (Intel)" submenu + live state + 🐢 throttle glyph in title
+- `scripts/optimize-intel.sh` — Turbo/GPU/Low-Power levers + `cool-now` + `revert`
+- `scripts/macos-speed-tweaks.sh` — per-user UI speedups (applied) + `revert`
+- `scripts/install-launch-agent.sh` — location-independent run-at-login installer
+- `docs/INTEL-OPTIMIZATION.md`
 
-### Phase 3: Settings Persistence
-- Created `config/settings.py` - Singleton pattern settings manager
-- Saves to `~/Library/Preferences/com.prsmtech.macbookturbo.json`
-- Persists: auto_clean_mode, show_detailed, cooldown_seconds
-- Loads on startup, saves on mode change
+### Cleanup
+- Archived 5 obsolete old-startup scripts → `archive/deprecated-scripts/`
+- Removed `.DS_Store` + `__pycache__`; bandit clean (`# nosec B108` on `/tmp` cleanup target)
 
-### Phase 4: Apple Silicon Support
-- Created `modules/apple_silicon_monitor.py`
-- Detects M1/M2/M3/M4 chip types (including Pro/Max/Ultra variants)
-- Monitors thermal pressure via `pmset -g therm`
-- Tracks E-core vs P-core configuration
-
-### Phase 5: Test Suite Update
-- Comprehensive test script `scripts/test-protection.sh`
-- Tests shell-level (NEVER_KILL array) and Python-level protection
-- All 26 shell tests + 24 Python tests passing
+## Backups (fully reversible)
+- `~/.macbook-turbo-backups/<timestamp>/` — 4 old plists, stray clone, `RESTORE-NOTES.txt`
 
 ## Known Blockers
-- None - All features working!
+- None. Turbo Boost Switcher not installed (needed for the `turbo-off` lever).
 
 ## Next Session Priorities
-1. Test menu bar app thoroughly with various workloads
-2. Consider integrating Apple Silicon monitor into menu bar UI
-3. Add thermal pressure display in menu bar
-4. Optional: Homebrew formula for easier distribution
-5. Update README with new v2.1.0 features
+1. Install Turbo Boost Switcher to enable the Turbo Boost lever
+2. Tag a v2.2.0 release
+3. Optional: Homebrew formula
