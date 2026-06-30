@@ -1,5 +1,24 @@
 # Decision Log
 
+## 2026-06-29 - Machine-specific Intel optimization (no-kext-first)
+
+**Context**: This repo runs on a 2018 i9 MacBook Pro (`MacBookPro15,1`) that throttles to ~35% under load; the project was originally tuned for Apple Silicon. The biggest lever (disable Turbo Boost) needs a third-party kext that is awkward on a T2 + Sequoia machine.
+**Decision**: Ship an Intel optimizer (`intel_optimizer.py`) + reversible levers, and apply the no-kext levers first (force-integrated GPU + Low Power Mode), deferring Turbo Boost control to Turbo Boost Switcher Pro's Auto Mode.
+**Rationale**:
+- GPU-park + Low Power need no kext, persist across reboots, and measurably cleared the throttle (39% → 100%) — immediate, reliable win
+- Turbo Boost Switcher's kext requires per-developer approval + a reboot on T2; gating the whole benefit on it is fragile. Pro's Auto Mode (temp-triggered) is the durable way to manage turbo
+**Alternatives**:
+- Drive the kext directly via `kextload` (fragile, fights the app's helper)
+- Require Reduced Security in Recovery (unnecessary — kext consent already ENABLED)
+**Impact**: Cooling delivered with zero kext risk; turbo-off is an opt-in finisher.
+
+## 2026-06-29 - Consolidate startup to one LaunchAgent
+
+**Context**: Login was driven by 3 dead `com.user.*` LaunchAgents (exit 127/78, deleted path), duplicate Login Items, and a rogue process from a 2nd repo clone.
+**Decision**: Remove all of the above (backed up to `~/.macbook-turbo-backups/`) and install one path-resolving LaunchAgent (`com.prsmtech.macbookturbo`) pointing at the repo's own venv.
+**Rationale**: Single source of truth; the installer resolves its own path so it can't drift to a dead location like the old agents did.
+**Impact**: Run-at-login works again, from the canonical repo with the correct Python.
+
 ## 2026-01-29 - USER_APPS Protection Category
 
 **Context**: Users reported Chrome, Brave, Spotify being killed during cleanup

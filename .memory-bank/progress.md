@@ -5,6 +5,13 @@
 
 ## Completed This Session
 
+### 2026-06-29 (cont.) - Live thermal tuning + Turbo Boost setup
+- ✅ Confirmed this i9 was throttling to ~35% under load (`pmset` CPU_Speed_Limit)
+- ✅ Applied no-kext levers: `gpuswitch 0` (integrated GPU) + `lowpowermode 1` (Low Power)
+- ✅ Measured recovery: CPU speed limit 39% → 56% → 79% → 100% (held) within ~1 min
+- ✅ Installed Turbo Boost Switcher **Pro**; approved its kext (Rugarciap) in Privacy & Security
+- ⏸️ Turbo Boost OFF pending a reboot (user deferred) — kext loads after restart
+
 ### 2026-06-29 - v2.2.0 Intel i9 Optimization + Startup Repair
 - ✅ Diagnosed live system: 3 broken `com.user.*` LaunchAgents (exit 127/78, dead path), duplicate Login Items, rogue process from a 2nd repo clone (Xcode Python 3.9)
 - ✅ Repaired startup: removed stale agents + login items, stopped rogue process, moved stray clone to `~/.macbook-turbo-backups/`, installed one correct venv-based LaunchAgent
